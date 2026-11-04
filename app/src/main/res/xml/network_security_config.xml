@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false">
+    <!-- Cleartext is allowed at the platform level so self-hosted model servers on a LAN
+         (Ollama, vLLM, llama.cpp, LM Studio...) can be reached over plain http.
+         NetworkSecurityConfig cannot express IP ranges, so the provider form
+         restricts http:// base URLs to loopback / private-network hosts instead. -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors><certificates src="system" /></trust-anchors>
     </base-config>
     <domain-config cleartextTrafficPermitted="true">

@@ -174,7 +174,9 @@ data class ProviderEditUiState(
     private val hasSupportedUrl: Boolean
         get() = runCatching {
             val uri = java.net.URI(baseUrl.trim())
-            uri.scheme?.lowercase(java.util.Locale.ROOT) in listOf("https", "http") && !uri.host.isNullOrBlank() && uri.userInfo == null
+            val scheme = uri.scheme?.lowercase(java.util.Locale.ROOT)
+            !uri.host.isNullOrBlank() && uri.userInfo == null &&
+                (scheme == "https" || (scheme == "http" && isPrivateNetworkHost(uri.host)))
         }.getOrDefault(false)
 
     val requestUrl: String?
@@ -235,4 +237,16 @@ internal fun ProviderConfig.toEditState(): ProviderEditUiState {
 
 enum class ProviderFormError {
     NAME_REQUIRED, URL_REQUIRED, INVALID_URL, PROTOCOL_REQUIRED, KEY_REQUIRED, MODEL_REQUIRED
+}
+
+/** Plain http is only accepted for servers on this device or the local network, never the public internet. */
+internal fun isPrivateNetworkHost(rawHost: String): Boolean {
+    val host = rawHost.trim('[', ']').lowercase(java.util.Locale.ROOT)
+    if (host == "localhost" || host.endsWith(".local") || host.endsWith(".lan")) return true
+    val parts = host.split('.')
+    if (parts.size == 4 && parts.all { it.toIntOrNull() in 0..255 }) {
+        val (a, b) = parts.take(2).map { it.toInt() }
+        return a == 10 || a == 127 || (a == 172 && b in 16..31) || (a == 192 && b == 168) || (a == 169 && b == 254) || (a == 100 && b in 64..127)
+    }
+    return ":" in host && (host == "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:"))
 }
