@@ -8,6 +8,10 @@ Record a notable change in `Unreleased` within the same pull request that implem
 
 ## [Unreleased]
 
+### Added
+
+- Connect through Shizuku from setup or settings, with authorization status and device connection recovery.
+
 ## [0.2.3] - 2026-11-12
 
 Refine multi-step screen actions, list collection, and date/time wheel controls.
